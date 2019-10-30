@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
@@ -57,20 +58,6 @@ public class Blog implements Serializable{
 	            }
             
         	}
-            
-            //Map fromJson = gson.fromJson("{\"logNo\":\"221353754732\",\"title\":\"test\"}", Map.class);
-//            
-//            System.out.println(fromJson);
-            
-//            Elements elem = doc.select(".se_title"); 
-//            
-//            String str = elem.text(); 
-//            
-//            Elements content = doc.select(".__se_component_area"); 
-//            
-//            System.out.println(str);
-//            
-//            System.out.println(content.text());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,12 +67,13 @@ public class Blog implements Serializable{
         System.out.println("끝");
     }
     
-//    @Bean
+    @Bean
     public void craw() {
     	
     	List<Links> findAll = linksRepository.findAll();
+//      Optional<Links> findById = linksRepository.findById(1);
+//    	Links links = findById.get();
     	Document doc = null;        //Document에는 페이지의 전체 소스가 저장된다
-    	
     	for(Links links : findAll) {
 	    	try{
 	        		String url = "https://blog.naver.com/PostView.nhn?blogId=spkyk&logNo="+links.getLink()+"&redirect=Dlog&widgetTypeCall=true&directAccess=false"; //크롤링할 url지정
@@ -109,23 +97,29 @@ public class Blog implements Serializable{
 	        	    
 	        	    
 	        	    title = titleEl.text();
-	        	    content = contentEl.text();
+	        	    content = contentEl.html();
+	        	    content = content.replaceAll("<br>", "\n");
+	        	    content = content.replaceAll("<(/)?([a-zA-Z]*)(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>", "");
+	        	    content = content.replaceAll("<!--.*-->", "");
+	        	    content = content.replaceAll("<o:p></o:p>", "");
+	        	    content = content.replaceAll("^\\s*", "");
+	        	    content = content.replaceAll("\\s*$", "");
+	        	    content = content.replaceAll("&lt;", "<");
+	        	    content = content.replaceAll("&gt;", ">");
+	        	    content = content.replaceAll("&amp;", "&");
+	        	    content = content.replaceAll("&nbsp;", " ");
+	        	    
 	        	    Bbs bbs = new Bbs();
 	        	    bbs.setBbsType("blog");
 	        	    bbs.setTitle(title);
 	        	    bbs.setContent(content);
 	        	    bbs.setContentId(links.getLink());
-	        	    
+
 	        	    bbsRepository.save(bbs);
 	    	}catch (Exception e) {
 	    		System.out.println(links.getLink());
-				// TODO: handle exception
 			}
     	}
-    	
-    	
-	    
-	    
 	    
     }
 }
