@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
@@ -18,6 +17,11 @@ import com.nikj.blog.entity.Bbs;
 import com.nikj.blog.entity.Links;
 import com.nikj.blog.repository.BbsRepository;
 import com.nikj.blog.repository.LinksRepository;
+
+import kr.co.shineware.nlp.komoran.constant.DEFAULT_MODEL;
+import kr.co.shineware.nlp.komoran.core.Komoran;
+import kr.co.shineware.nlp.komoran.model.KomoranResult;
+import kr.co.shineware.nlp.komoran.model.Token;
 
 @Component
 public class Blog implements Serializable{
@@ -67,7 +71,7 @@ public class Blog implements Serializable{
         System.out.println("끝");
     }
     
-    @Bean
+//    @Bean
     public void craw() {
     	
     	List<Links> findAll = linksRepository.findAll();
@@ -102,6 +106,16 @@ public class Blog implements Serializable{
 	        	    content = content.replaceAll("<(/)?([a-zA-Z]*)(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>", "");
 	        	    content = content.replaceAll("<!--.*-->", "");
 	        	    content = content.replaceAll("<o:p></o:p>", "");
+	        	    content = content.replaceAll("<?xml:namespace.*/>", "");
+	        	    
+	        	    content = content.replaceAll("<h5.*>", "");
+	        	    content = content.replaceAll("<h1.*>", "");
+	        	    content = content.replaceAll("<h2.*>", "");
+	        	    content = content.replaceAll("<v:shapetype.*>", "");
+	        	    content = content.replaceAll("</h5>", "");
+	        	    content = content.replaceAll("</h1>", "");
+	        	    content = content.replaceAll("</h2>", "");
+	                content = content.replaceAll("</v:shapetype>", "");
 	        	    content = content.replaceAll("^\\s*", "");
 	        	    content = content.replaceAll("\\s*$", "");
 	        	    content = content.replaceAll("&lt;", "<");
@@ -121,5 +135,20 @@ public class Blog implements Serializable{
 			}
     	}
 	    
+    }
+    
+    @Bean
+    public void komo() {
+        Komoran komoran = new Komoran(DEFAULT_MODEL.FULL);
+        String strToAnalyze = "‘평화’의 가파른 언덕을 오르며 맞이하는 ‘추석’입니다. 이번 보름달에게는 우리 모두 ‘평화로운 한반도’를 빌어보면 좋겠습니다. 평화의 온기 속에서 우리 모두 편안하고 행복한 추석되시길 바랍니다.";
+        
+        KomoranResult analyzeResultList = komoran.analyze(strToAnalyze);
+
+        System.out.println(analyzeResultList.getPlainText());
+
+        List<Token> tokenList = analyzeResultList.getTokenList();
+        for (Token token : tokenList) {
+            System.out.format("(%2d, %2d) %s/%s\n", token.getBeginIndex(), token.getEndIndex(), token.getMorph(), token.getPos());
+        }
     }
 }
