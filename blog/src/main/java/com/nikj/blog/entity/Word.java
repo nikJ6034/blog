@@ -19,5 +19,7 @@ public class Word {
     @Column
     private String word;
     
-    private int count;
+    @Column
+    private String pos;
+
 }

@@ -3,6 +3,10 @@ package com.nikj.blog.entity;
 import java.io.Serializable;
 import java.util.Objects;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter @Setter
 public class BbsWordId implements Serializable{
     
     private static final long serialVersionUID = 1L;
